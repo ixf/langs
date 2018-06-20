@@ -1,0 +1,82 @@
+{% extends "main_frame.html" %}
+{% block contents %}
+<h1>{{ title }}</h1>
+<p id="article_text">{{ article_text }}</p>
+<ul id="article_words">
+</ul>
+<form id="hiddenform" action="/article/summary/" method="post">
+  {% csrf_token %}
+  <input id="hiddenform_words" type="hidden" name="words">
+</form>
+<button id="article_done">OK</button>
+
+<script type="text/javascript">
+var marked = [];
+let doc = document.getElementById("article_text"); 
+doc.setAttribute('onclick', 'on_word_click(event)');
+let word_list = document.getElementById("article_words");
+//word_list.setAttribute('onclick', 'on_word_click(event)');
+document.getElementById("article_done").setAttribute('onclick', 'done_on_click(event)');
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+var csrftoken = getCookie('csrftoken');
+
+let on_word_click = function(e){
+        s = window.getSelection();
+        var range = s.getRangeAt(0);
+        var node = s.anchorNode;
+        let breakers = " ><.,:()[]{}";
+        while( range.toString().charAt(0) != ' ') {                 
+                range.setStart(node,(range.startOffset -1));
+        }
+        range.setStart(node, range.startOffset +1);
+
+        do {
+                range.setEnd(node,range.endOffset + 1);
+        } while( breakers.indexOf(range.toString().slice(-1)) == -1);
+
+        var str = range.toString().trim();
+        if( breakers.indexOf(str.charAt(str.length - 1)) != -1)
+                str = str.substring(0, str.length - 1);
+
+        if( str.indexOf(' ') == -1){
+                let re = new RegExp(str, "g");
+                doc.innerHTML = doc.innerHTML.replace(re, "<span style=\"background-color:orange\">" + str + "</span>");
+
+                var request = new XMLHttpRequest();
+                request.open("GET", "/translate?w="+str, true);
+                request.onload = function() {
+                        if (request.status >= 200 && request.status < 400) {
+                                var data = JSON.parse(request.responseText);
+                                console.log(data);
+                                word_list.innerHTML += "<li>"+data.yourword+" -- "+data.translation+"</li>"
+                                if( data.translation != "Not found")
+                                  marked.push(str);
+                        } else {
+                                console.log("Connection error");
+                        }
+                };
+                request.onerror = function() { console.log("Error of some kind"); };
+                request.send();
+        }
+};
+
+let done_on_click = function(event){
+  document.getElementById("hiddenform_words").value = marked;
+  document.getElementById("hiddenform").submit();
+};
+</script>
+{% endblock %}

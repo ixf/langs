@@ -1,0 +1,18 @@
+{% extends "main_frame.html" %}
+{% block contents %}
+<h2> Twoje statystyki </h2>
+Liczba sesji: {{ stats.srs_sessions }}<br>
+Wszystkich powtórek: {{ stats.total_reviews }}<br>
+Poprawność: {{ stats.correctness }}<br>
+<h2> Ostatnie artykuły </h2>
+<ul>
+{% for i, title in latest_articles %}
+<li><a href="/article/{{ i }}">{{ title }}</a></li>
+{% endfor %}
+</ul>
+<h2> Twoje artykuły </h2>
+{% for i, title in own_articles %}
+<li><a href="/article/{{ i }}">{{ title }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

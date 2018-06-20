@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <meta charset="utf-8">
+                <title>JĘZYKI</title>
+                {% load static %}
+                <link rel="stylesheet" type="text/css" href="{% static "styles.css" %}" >
+        </head>
+        <body>
+                <div id="sidebar">
+                        <div class="part_sidebar">
+                        {% block sidebar %}{% endblock %}
+                        </div>
+                        <div class="part_sidebar">
+                          <a href="/article/new">nowy artykuł</a><br>
+                          <a href="/srs">powtórka</a><br>
+                        </div id="mid_sidebar">
+                        <div id="bottom_sidebar">
+                          <a href="/">index</a><br>
+                          <a href="/admin">admin</a><br>
+                          <a href="/login">login/out</a><br>
+                        </div>
+                </div>
+                <div id="content">
+                  {% if user %}
+
+                  {% block contents %}
+                  {% endblock %}
+
+                  {% endif %}
+                </div>
+        </body>
+</html>
+

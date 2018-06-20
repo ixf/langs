@@ -1,0 +1,26 @@
+{% extends "main_frame.html" %}
+{% block super_contents %}
+{{ status }}
+{% if not user.is_authenticated %}
+<h1>Login</h1>
+<form action="/login" method="post">
+  {% csrf_token %}
+  <label for="username">Username</label>
+  <input id="username" type="text" name="username" value=""><br>
+  <label for="password">Password</label>
+  <input id="password" type="password" name="password" value=""><br>
+  <input type="hidden" name="type" value="login">
+  <input type="submit" value="OK">
+</form>
+<h1>Register</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <input type="hidden" name="type" value="signup">
+  <button type="submit">Sign up</button>
+</form>
+{% else %}
+<p>You're already logged in.</p>
+<a href="/logout">Log out</a>
+{% endif %}
+{% endblock %}
