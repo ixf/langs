@@ -18,8 +18,8 @@ def index(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect('/login')
     template = loader.get_template('index.html')
-    own_articles = [ (a.id, a.title, a.contents[0:100]+"...") for a in Article.objects.filter(uploader=request.user)[0:3]]
-    latest_articles = [ (a.id, a.title, a.contents[0:100]+"...") for a in Article.objects.all()[0:3]]
+    own_articles = [ (a.id, a.title, a.contents[0:100]+"...") for a in Article.objects.filter(uploader=request.user)[::-1][0:3]]
+    latest_articles = [ (a.id, a.title, a.contents[0:100]+"...") for a in Article.objects.all()[::-1][0:3]]
 
     s = Statistics.objects.get(user=request.user)
 

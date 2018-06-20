@@ -10,7 +10,7 @@ SECRET_KEY = 'c#(j#ph0&=#ulq3q$-&2@0!0v)mc-5(!yb184f122dwkc$vs!s'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [ '192.168.1.20', 'localhost' ]
+ALLOWED_HOSTS = [ '127.0.0.1', 'localhost' ]
 
 INSTALLED_APPS = [
     'learn',
