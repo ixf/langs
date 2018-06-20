@@ -1,0 +1,28 @@
+{% extends "main_frame.html" %}
+{% block contents %}
+<h1>Użytkownik {{ profile.username }}</h1>
+
+<table class="table table-bordered table-striped">
+  <tbody>
+    <tr>
+      <th>Ilość sesji</th>
+      <td>{{ stats.srs_sessions }}</th>
+    </tr>
+    <tr>
+      <th>Poprawność</th>
+      <td>{{ stats.correctness }}</th>
+    </tr>
+    <tr>
+      <th>Ilość powtórzeń</th>
+      <td>{{ stats.total_reviews }}</th>
+    </tr>
+    <tr>
+      <th>Języki</th>
+      <td>{{ languages }}</th>
+    </tr>
+  </tbody>
+</table>
+
+<a href="/article_list?type=id&id={{ profile.id }}">Artykuły użytkownika</a>
+
+{% endblock %}

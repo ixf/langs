@@ -1,34 +1,65 @@
 <!DOCTYPE html>
 <html>
-        <head>
-                <meta charset="utf-8">
-                <title>JĘZYKI</title>
-                {% load static %}
-                <link rel="stylesheet" type="text/css" href="{% static "styles.css" %}" >
-        </head>
-        <body>
-                <div id="sidebar">
-                        <div class="part_sidebar">
-                        {% block sidebar %}{% endblock %}
-                        </div>
-                        <div class="part_sidebar">
-                          <a href="/article/new">nowy artykuł</a><br>
-                          <a href="/srs">powtórka</a><br>
-                        </div id="mid_sidebar">
-                        <div id="bottom_sidebar">
-                          <a href="/">index</a><br>
-                          <a href="/admin">admin</a><br>
-                          <a href="/login">login/out</a><br>
-                        </div>
-                </div>
-                <div id="content">
-                  {% if user %}
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>LANGS</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css" integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">
+  </head>
+  <body>
 
-                  {% block contents %}
-                  {% endblock %}
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-primary">
+      <a class="navbar-brand" href="/">LANGS</a>
 
-                  {% endif %}
-                </div>
-        </body>
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="/srs">Powtórka</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/words">Lista słów</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/article_list?type=all">Wszystkie artykuły</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/article_list?type=id&id={{ user.id }}">Własne artykuły</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/article_new">Nowy artykuł</a>
+          </li>
+        {% endif %}
+        </ul>
+        <ul class="navbar-nav align-self-end">
+          {% if user.is_authenticated %}
+          <form action="/user_search" method="get" class="form-inline mt-2 mt-md-0">
+            <input class="form-control mr-sm-2" name="regex" placeholder="Szukaj użytkownika" type="text" aria-label="Szukaj użytkownika">
+          </form>
+          <li class="nav-item">
+            <a class="nav-link" href="/profile/{{ user.id }}">Twój profil</a>
+          </li>
+          {% endif %}
+          <li class="nav-item">
+            <a class="nav-link" href="/admin">Admin</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/login">Login/out</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <main role="main" class="container" style="padding-top: 80px">
+      <div class="jumbotron">
+        {% block contents %}
+        {% endblock %}
+      </div>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+  </body>
 </html>
 

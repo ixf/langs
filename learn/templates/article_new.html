@@ -6,10 +6,24 @@
 {% endif %}
 <form action="/article_submit" method="post">
   {% csrf_token %}
-  <label for="article_title">Title:</label>
-  <input id="article_title" type="text" name="article_title" value=""><br>
-  <label for="article_text">Text:</label>
-  <textarea id="article_text" name="article_text" value=""></textarea><br>
+
+  <div class="form-group">
+    <label for="article_title" class="bmd-label-floating">Tytuł artykułu</label>
+    <input type="text" class="form-control" id="article_title" name="article_title" value=""/>
+  </div>
+  <div class="form-group">
+    <label for="article_language" class="bmd-label-floating">Wybór języka</label>
+    <select class="form-control" name="article_language">
+      <option value="en">Angielski</option>
+      <option value="de">Niemiecki</option>
+      <option value="es">Hiszpański</option>
+      <option value="fr">Francuski</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="article_text" class="bmd-label-floating">Treść</label>
+    <textarea class="form-control" id="article_text" name="article_text" rows="8"></textarea>
+  </div>
   <input type="submit" value="OK">
 </form>
 {% endblock %}

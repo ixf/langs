@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 class Word(models.Model):
     literal = models.CharField(max_length=128)
     translated = models.CharField(max_length=512)
+    language = models.CharField(max_length=8)
 
 class WordProgress(models.Model):
     word = models.ForeignKey(Word, on_delete=models.CASCADE)
@@ -18,6 +19,7 @@ class WordProgress(models.Model):
 
 class Article(models.Model):
     uploader = models.ForeignKey(User, on_delete=models.CASCADE)
+    language = models.CharField(max_length=8)
     title = models.TextField()
     contents = models.TextField()
 

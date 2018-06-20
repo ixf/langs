@@ -1,61 +1,84 @@
 {% extends "main_frame.html" %}
 {% block contents %}
-<h1 id="word"></h1>
-<form id="hiddenform" action="/srs/summary" method="post">
-  {% csrf_token %}
-  <input id="hiddenform_results" type="hidden" name="results">
-</form>
-<div id="srs_reveal">
-  <button  onclick="reveal()">Reveal</button>
-</div>
-<div id="srs_score_buttons">
-  <button class="srs_button" onclick="nextWord(1)">1: Again</button>
-  <button class="srs_button" onclick="nextWord(2)">2: Hard</button>
-  <button class="srs_button" onclick="nextWord(3)">3: Good</button>
-  <button class="srs_button" onclick="nextWord(4)">4: Easy</button>
-</div>
+{% if not error %}
+  <h1 id="word"></h1>
+  <form id="hiddenform" action="/srs_summary" method="post">
+    {% csrf_token %}
+    <input id="hiddenform_results" type="hidden" name="results">
+  </form>
+  <div id="srs_reveal">
+    <button class="btn btn-raised btn-secondary" onclick="reveal()">Reveal</button>
+  </div>
+  <div id="srs_score_buttons">
+    <button class="btn btn-raised btn-danger" onclick="nextWord(1)">1: Again</button>
+    <button class="btn btn-raised btn-warning" onclick="nextWord(2)">2: Hard</button>
+    <button class="btn btn-raised btn-success" onclick="nextWord(3)">3: Good</button>
+    <button class="btn btn-raised btn-primary" onclick="nextWord(4)">4: Easy</button>
+  </div>
 
 
-<script type="text/javascript">
-let words = {{ words|safe }}; // (word, translation, id)
-let repeat = []; // (word, translation, id)
-let done = []; // krotki typu (id, wynik). jezeli wynik to 0 to moga sie powtarzac
-let current = words.pop();
+  <script type="text/javascript">
+  let words = {{ words|safe }}; // (word, translation, id)
+  let repeat = []; // (word, translation, id)
+  let done = []; // krotki typu (id, wynik). jezeli wynik to 0 to moga sie powtarzac
+  let current = words.pop();
 
-let wordbox = document.getElementById("word")
-let reveal_button = document.getElementById("srs_reveal");
-let score_buttons = document.getElementById("srs_score_buttons");
+  let wordbox = document.getElementById("word")
+  let reveal_button = document.getElementById("srs_reveal");
+  let score_buttons = document.getElementById("srs_score_buttons");
 
-let nextWord = function(level){
-  if( level == 1 ){
-    repeat.push(current);
-  }
-  done.push([current[2], level]);
+  let mode = 0; // 0 == schowane, 1 == odkryte
 
-  if( words.length == 0 ){
-    console.log(repeat);
-    if( repeat.length == 0 ){
-      document.getElementById("hiddenform_results").value = done;
-      document.getElementById("hiddenform").submit();
-    } else {
-      words = repeat;
-      repeat = [];
+  document.getElementsByTagName("body")[0].onkeypress = function(e) {
+    if(mode == 0 && e.key == " "){
+      reveal();
+    }else if (mode == 1){
+      if ( e.key == "1"){
+        nextWord(1);
+      }else if ( e.key == "2"){
+        nextWord(2);
+      }else if ( e.key == "3"){
+        nextWord(3);
+      }else if ( e.key == "4"){
+        nextWord(4);
+      }
     }
-  } 
-  current = words.pop();
+  }
+
+  let nextWord = function(level){
+    if( level == 1 ){
+      repeat.push(current);
+    }
+    done.push([current[2], level]);
+
+    if( words.length == 0 ){
+      console.log(repeat);
+      if( repeat.length == 0 ){
+        document.getElementById("hiddenform_results").value = done;
+        document.getElementById("hiddenform").submit();
+      } else {
+        words = repeat;
+        repeat = [];
+      }
+    } 
+    current = words.pop();
+    wordbox.innerHTML = current[0];
+    score_buttons.style.display = "none";
+    reveal_button.style.display = "block";
+    mode = 0;
+  };
+
+  let reveal = function(){
+    wordbox.innerHTML = current[1];
+    reveal_button.style.display = "none";
+    score_buttons.style.display = "block";
+    mode = 1;
+  }
   wordbox.innerHTML = current[0];
   score_buttons.style.display = "none";
-  reveal_button.style.display = "block";
-};
-
-let reveal = function(){
-  wordbox.innerHTML = current[1];
-  reveal_button.style.display = "none";
-  score_buttons.style.display = "block";
-}
-wordbox.innerHTML = current[0];
-score_buttons.style.display = "none";
-</script>
-
+  </script>
+{% else %}
+{{ error }}
+{% endif %}
 {% endblock %}
 

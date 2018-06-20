@@ -1,0 +1,21 @@
+{% extends "main_frame.html" %}
+{% block contents %}
+
+<div class="my-3 p-3 bg-white rounded box-shadow">
+  <h6 class="border-bottom border-gray pb-2 mb-0">{{ title }}</h6>
+
+  {% for i, lang, title, beginning in articles %}
+  <div class="media text-muted pt-3">
+    <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+    <a href="/article/{{ i }}">
+      <strong class="d-block text-gray-dark">{{ title }}</strong>
+    </a>
+    [{{lang}}] 
+    {{ beginning }}
+    </p>
+  </div>
+  {% endfor %}
+
+</div>
+
+{% endblock %}

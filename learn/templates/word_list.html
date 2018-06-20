@@ -1,0 +1,53 @@
+{% extends "main_frame.html" %}
+{% block contents %}
+{% if message %}
+<h3>
+{{ message }}
+</h3>
+{% endif %}
+
+<table class="table table-bordered table-striped">
+  <thead>
+    <tr>
+      <th class="text-center">
+        Słowo<br>
+      </th>
+      <th class="text-center">
+        Tłumaczenie<br>
+      </th>
+      <th class="text-center">
+        Język<br>
+      </th>
+      <th class="text-center">
+        Interwał<br>
+      </th>
+      <th class="text-center">
+        Sesja z kolejną potwórką<br>
+      </th>
+      <th class="text-center">
+        Easy factor<br>
+      </th>
+      <th class="text-center">
+        Usuń<br>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for wp in word_ps %}
+
+    <tr>
+      <td>{{ wp.word.literal }}</th>
+      <td>{{ wp.word.translated }}</td>
+      <td>{{ wp.word.language }}</td>
+      <td>{{ wp.interval }}</td>
+      <td>{{ wp.next_review }}</td>
+      <td>{{ wp.easy_factor }}</td>
+      <td><a class="btn btn-sm btn-raised btn-danger" href="/remove_word/{{ wp.id }}">Usuń</a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+
+{% endblock %}

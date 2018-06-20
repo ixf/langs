@@ -1,18 +1,58 @@
 {% extends "main_frame.html" %}
 {% block contents %}
+<h2> O aplikacji </h2>
+<p>Aplikacja służy doskonaleniu znajomości języka obcego przy pomocy metody Spaced Repetition ( jak m.in. aplikacje Duolingo, Memrise, Anki ). 
+Użytkownicy mogą dodawać artykuły do bazy danych, a następnie podczas ich czytania dodawać nieznane słowa do własnego konta.
+Podczas powtórek użytkownik odpowiada czy potrafi przetłumaczyć dane słowo na swój język czy nie.
+Słowa zapomniane są powtarzane w trakcie jednej sesji aż do skutku.
+Interwał między wystąpieniami danego słowa rośnie lub maleje w zależności od udzielonej odpowiedzi.
+</p>
+<p>Aplikacja do działania wymaga instalacji modułu translate-api, czyli: </p>
+<input type="text" id="pip_command" value="pip install translate-api --user" readonly>
+<button class="btn btn-sm btn-raised btn-primary" onclick="copy_command()">Skopiuj</button>
+  <script>
+  function copy_command(){
+    var command = document.getElementById("pip_command");
+    command.select();
+    document.execCommand("copy");
+  }
+  </script>
+  
+
 <h2> Twoje statystyki </h2>
 Liczba sesji: {{ stats.srs_sessions }}<br>
 Wszystkich powtórek: {{ stats.total_reviews }}<br>
 Poprawność: {{ stats.correctness }}<br>
-<h2> Ostatnie artykuły </h2>
-<ul>
-{% for i, title in latest_articles %}
-<li><a href="/article/{{ i }}">{{ title }}</a></li>
-{% endfor %}
-</ul>
-<h2> Twoje artykuły </h2>
-{% for i, title in own_articles %}
-<li><a href="/article/{{ i }}">{{ title }}</a></li>
-{% endfor %}
-</ul>
+
+<div class="my-3 p-3 bg-white rounded box-shadow">
+  <h6 class="border-bottom border-gray pb-2 mb-0">Własne artykuły </h6>
+
+  {% for i, title, beginning in own_articles %}
+  <div class="media text-muted pt-3">
+    <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+    <a href="/article/{{ i }}">
+      <strong class="d-block text-gray-dark">{{ title }}</strong>
+    </a>
+    {{ beginning }}
+    </p>
+  </div>
+  {% endfor %}
+
+</div>
+
+<div class="my-3 p-3 bg-white rounded box-shadow">
+  <h6 class="border-bottom border-gray pb-2 mb-0">Ostatnie artykuły</h6>
+
+  {% for i, title, beginning in latest_articles %}
+  <div class="media text-muted pt-3">
+    <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+    <a href="/article/{{ i }}">
+      <strong class="d-block text-gray-dark">{{ title }}</strong>
+    </a>
+    {{ beginning }}
+    </p>
+  </div>
+  {% endfor %}
+</div>
+
 {% endblock %}

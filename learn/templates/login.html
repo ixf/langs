@@ -1,26 +1,50 @@
 {% extends "main_frame.html" %}
-{% block super_contents %}
+{% block contents %}
 {{ status }}
 {% if not user.is_authenticated %}
 <h1>Login</h1>
 <form action="/login" method="post">
   {% csrf_token %}
-  <label for="username">Username</label>
-  <input id="username" type="text" name="username" value=""><br>
-  <label for="password">Password</label>
-  <input id="password" type="password" name="password" value=""><br>
+
+  <div class="form-group">
+    <label for="username" class="bmd-label-floating">Nazwa użytkownika:</label>
+    <input type="text" class="form-control" id="username" name="username" value=""/>
+  </div>
+
+  <div class="form-group">
+    <label for="password" class="bmd-label-floating">Hasło:</label>
+    <input type="password" class="form-control" id="password" name="password" value=""/>
+  </div>
   <input type="hidden" name="type" value="login">
-  <input type="submit" value="OK">
+  <input class="btn btn-info btn-raised" type="submit" value="Zaloguj">
 </form>
 <h1>Register</h1>
 <form method="post">
   {% csrf_token %}
-  {{ form.as_p }}
+
+  {% for field in form %}
+
+  {{ field.errors }}
+
+  <div class="form-group">
+    <label for="{{ field.id_for_label }}" class="bmd-label-floating">{{ field.label_tag }}</label>
+
+    {% if field.id_for_label == "id_username" %}
+    <input type="text" class="form-control" id="{{ field.id_for_label }}" name="{{ field.html_name }}" value=""/>
+    {% else %}
+    <input type="password" class="form-control" id="{{ field.id_for_label }}" name="{{ field.html_name }}" value=""/>
+    {% endif %}
+
+  </div>
+
+  {% endfor %}
+
   <input type="hidden" name="type" value="signup">
-  <button type="submit">Sign up</button>
+  <input class="btn btn-info btn-raised" type="submit" value="Zarejestruj">
 </form>
 {% else %}
-<p>You're already logged in.</p>
-<a href="/logout">Log out</a>
+<h1>Jesteś już zalogowany jako {{ user.username }}</h1>
+<a class="btn btn-raised btn-danger" href="/logout" role="button">Wyloguj</a>
 {% endif %}
 {% endblock %}
+

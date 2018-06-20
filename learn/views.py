@@ -10,26 +10,20 @@ from django.template import loader
 from django.contrib.auth.decorators import login_required
 from .models import *
 
-from translate_api.translate_api import api as translate_api
-
-from string import ascii_uppercase
-
-import requests
 import json
-from html.parser import HTMLParser
+from translate_api.translate_api import api as translate_api
 
 @login_required(redirect_field_name=None)
 def index(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect('/login')
     template = loader.get_template('index.html')
-    own_articles = [ (a.id, a.title) for a in Article.objects.filter(uploader=request.user)]
-    latest_articles = [ (a.id, a.title) for a in Article.objects.all()][0:5]
+    own_articles = [ (a.id, a.title, a.contents[0:100]+"...") for a in Article.objects.filter(uploader=request.user)[0:3]]
+    latest_articles = [ (a.id, a.title, a.contents[0:100]+"...") for a in Article.objects.all()[0:3]]
 
-    s,_ = Statistics.objects.get_or_create(user=request.user)
+    s = Statistics.objects.get(user=request.user)
 
     context = {
-        'guest' : False,
         'own_articles' : own_articles,
         'latest_articles' : latest_articles,
         'stats' : s,
@@ -51,6 +45,10 @@ def login(request):
                 password = request.POST.get('password1', None)
                 user = django.contrib.auth.authenticate(request, username=username, password=password)
                 django.contrib.auth.login(request, user)
+
+                s,_ = Statistics.objects.get_or_create(user=user)
+                s.save()
+
                 return HttpResponse(template.render({'status': 'Sign up successful'}, request))
             return HttpResponse(template.render({'form': ucf, 'status': 'Sign up failed'}, request))
         elif request.POST['type'] == 'login':
@@ -72,6 +70,7 @@ def logout(request):
     template = loader.get_template('login.html')
     return HttpResponseRedirect('/login', template.render({'status': 'You\'ve been logged out.'}, request))
 
+
 @login_required(redirect_field_name=None)
 def article_new(request):
     template = loader.get_template('article_new.html')
@@ -82,11 +81,10 @@ def article_new(request):
 def article(request, article_id):
     if not request.user.is_authenticated:
         return HttpResponseRedirect('/login')
-    article = get_object_or_404(Article, uploader=request.user, id=article_id)
+    article = get_object_or_404(Article, id=article_id)
     template = loader.get_template('article.html')
     context = {
-        'title' : article.title,
-        'article_text' : article.contents,
+            'article': article,
     }
    
     return HttpResponse(template.render(context, request))
@@ -94,16 +92,20 @@ def article(request, article_id):
 
 @login_required(redirect_field_name=None)
 def article_summary(request):
-    words = request.POST["words"].split(',')
+    words = filter( lambda x: x != '', request.POST["words"].split(','))
+    lang = request.POST["article_language"]
+    print(words, lang)
 
     session_num = Statistics.objects.get(user=request.user).srs_sessions
 
     for word in words:
         print(word)
-        lit = word
-        trn = get_object_or_404(Word, literal=word).translated
-        obj, created = Word.objects.get_or_create(literal=lit, translated=trn)
+        trn = get_object_or_404(Word, literal=word, language=lang).translated
+        obj, created = Word.objects.get_or_create(literal=word, translated=trn, language=lang)
+
+        WordProgress.objects.filter(word=obj, user=request.user).delete()
         wp = WordProgress(word=obj, user=request.user, next_review=session_num+1)
+
         wp.save()
 
     return HttpResponseRedirect('/')
@@ -118,6 +120,10 @@ def spaced_repetition(request):
 
     words_p = WordProgress.objects.filter(user=request.user, next_review=stats.srs_sessions+1)
     js_data = [ (wp.word.literal, wp.word.translated, wp.id) for wp in words_p ]
+
+    if WordProgress.objects.filter(user=request.user).count() == 0:
+        context = { "error" : "Brak słów. Przeczytaj artykuł i dodaj kilka." }
+        return HttpResponse(template.render(context, request))
 
     while len(js_data) == 0:
         # jeżeli nie było nic do powtórki przy tej sesji to zwiększamy licznik o jeden
@@ -144,7 +150,6 @@ def spaced_repetition_summary(request):
 
     for wp_id, score in zip(ids, scores):
         wp = WordProgress.objects.get(id=wp_id)
-
         if score == 1:
             wp.easy_factor -= 0.2
             wp.interval *= 0.5
@@ -158,82 +163,97 @@ def spaced_repetition_summary(request):
             wp.interval *= wp.easy_factor
             wp.easy_factor += 0.15
 
-        wp.easy_factor = max(1.3, wp.easy_factor)
-        s.total_reviews += 1
-
+        wp.interval = round(max(1, wp.interval),2)
+        wp.easy_factor = round(max(1.3, wp.easy_factor),2)
         wp.next_review = s.srs_sessions + wp.interval
 
+        s.total_reviews += 1
         wp.save()
     s.save()
 
     return HttpResponseRedirect('/')
 
 
-class WiktionaryParser(HTMLParser): # TODO przenieść to osobnego modułu
+@login_required(redirect_field_name=None)
+def word_list(request):
+    template = loader.get_template('word_list.html')
+    context = {
+        'word_ps': WordProgress.objects.filter(user=request.user)
+    }
+    return HttpResponse(template.render(context,request))
 
-    german_found = False
-    searched_ids = ["Noun", "Verb", "Adjective", "Adverb", "Conjunction", "Pronoun", "Contraction", "Numeral", "Article", "Preposition"]
-    expect_list = False
-    expect_translation = False
-    result = ""
-   
-    def handle_starttag(self, tag, attrs):
-        if self.expect_list:
-            if tag == 'li':
-                self.expect_translation = True
-            elif tag == 'dl':
-                self.expect_translation = False
-                self.expect_list = False
-                self.german_found = False
-        elif tag == "span" and ('id', 'German') in attrs:
-            self.german_found = True
-        elif tag == "hr":
-            self.german_found = False
+@login_required(redirect_field_name=None)
+def article_list(request):
+    type = request.GET['type']
+    template = loader.get_template('article_list.html')
+    if type == 'all':
+        articles = [ (a.id, a.language, a.title, a.contents[0:100]+"...") for a in Article.objects.all()]
+    elif type == 'id':
+        id = request.GET['id']
+        user = User.objects.get(id=id)
+        articles = [ (a.id, a.language, a.title, a.contents[0:100]+"...") for a in Article.objects.filter(uploader=user)]
 
-    def handle_endtag(self, tag):
-        if self.expect_translation and tag == "li" and self.result != "":
-            self.expect_translation = False
-            self.expect_list = False
-            self.german_found = False
-        
-    def handle_data(self, data):
-        if self.expect_translation:
-            self.result += data
-        elif self.german_found:
-            if data in self.searched_ids:
-                self.expect_list = True
+    context = {
+        'title' : 'Twoje artykuły' if type == 'mine' else 'Wszystkie artykuły',
+        'articles' : articles,
+    }
+    return HttpResponse(template.render(context, request))
+
+@login_required(redirect_field_name=None)
+def article_submit(request):
+    print(request.POST)
+    if request.user.is_authenticated:
+        a = Article(uploader=request.user, title=request.POST['article_title'], contents=request.POST['article_text'], language=request.POST['article_language'])
+        a.save()
+        return HttpResponseRedirect("/article/"+str(a.id))
+    return HttpResponseRedirect("/login") 
+
 
 def translate(request):
     print(request.GET)
     word = request.GET['w']
-    def handle_word(word):
-        translation_url = "https://translate.googleapis.com/translate_a/single?client=brt&sl=de&tl=pl&q=" + word + "&ie=UTF-8&oe=UTF-8"
+    lang = request.GET['lang']
+    translation = translate_api( word, lang, "pl" )
 
-        result = translate_api( word, "de", "pl" )
-
-        #req = requests.get(translation_url)
-        #print(req.text)
-        #wp = WiktionaryParser()
-        #wp.feed(req.text)
-        #result = req.text # wp.result
-        print(result)
-        if result == "":
-            result = "Not found"
-        return (word, result)
-    (word, translation) = handle_word(word)
-    obj, created = Word.objects.get_or_create(literal=word, translated=translation)
+    obj, created = Word.objects.get_or_create(literal=word, translated=translation, language=lang)
     if created:
         obj.save()
     return JsonResponse({'yourword': word, 'translation': translation})
 
 
 @login_required(redirect_field_name=None)
-def article_submit(request):
-    print(request.POST)
-    if request.user.is_authenticated:
-        a = Article(uploader=request.user, title=request.POST['article_title'], contents=request.POST['article_text'])
-        a.save()
-        return HttpResponseRedirect("/article/"+str(a.id))
-    return HttpResponseRedirect("/login") 
+def profile(request, user_id):
+    template = loader.get_template('profile.html')
+    user = User.objects.get(id=user_id)
+    langs = list(set( [ wp.word.language for wp in WordProgress.objects.filter(user=user)] ))
+    context = {
+        'profile' : user,
+        'stats' : Statistics.objects.get(user=user),
+        'languages' : ', '.join(langs),
+    }
+    return HttpResponse(template.render(context, request))
 
+
+@login_required(redirect_field_name=None)
+def user_search(request):
+    regex = request.GET['regex']
+    template = loader.get_template('user_search.html')
+    context = {
+        'title' : "Wyniki dla '" + regex + "'",
+        'users' : User.objects.filter(username__regex=regex),
+    }
+    return HttpResponse(template.render(context, request))
+
+@login_required(redirect_field_name=None)
+def remove_word(request, word_id):
+    template = loader.get_template('word_list.html')
+    w = WordProgress.objects.get(id=word_id, user=request.user)
+    deleted = w.word.literal
+    w.delete()
+    context = {
+        'message' : "Słowo '" + deleted + "' usunięto pomyślnie",
+        'word_ps': WordProgress.objects.filter(user=request.user),
+    }
+    return HttpResponse(template.render(context,request))
+    return HttpResponse(template.render(context, request))
 

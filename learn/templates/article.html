@@ -1,14 +1,15 @@
 {% extends "main_frame.html" %}
 {% block contents %}
-<h1>{{ title }}</h1>
-<p id="article_text">{{ article_text }}</p>
+<h1>{{ article.title }}</h1>
+<p id="article_text">{{ article.contents }}</p>
 <ul id="article_words">
 </ul>
-<form id="hiddenform" action="/article/summary/" method="post">
+<form id="hiddenform" action="/article_summary" method="post">
   {% csrf_token %}
   <input id="hiddenform_words" type="hidden" name="words">
+  <input name="article_language" type="hidden" value="{{ article.language }}">
 </form>
-<button id="article_done">OK</button>
+<button class="btn btn-sm btn-raised btn-primary" id="article_done">OK</button>
 
 <script type="text/javascript">
 var marked = [];
@@ -57,7 +58,7 @@ let on_word_click = function(e){
                 doc.innerHTML = doc.innerHTML.replace(re, "<span style=\"background-color:orange\">" + str + "</span>");
 
                 var request = new XMLHttpRequest();
-                request.open("GET", "/translate?w="+str, true);
+                request.open("GET", "/translate?w="+str+"&lang={{article.language}}", true);
                 request.onload = function() {
                         if (request.status >= 200 && request.status < 400) {
                                 var data = JSON.parse(request.responseText);
