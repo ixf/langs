@@ -1,3 +1,4 @@
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -34,3 +35,4 @@ class Statistics(models.Model):
         if self.total_reviews == 0:
             return "N/A"
         return round(1.0-(self.wrong_guesses/self.total_reviews),4)
+

@@ -7,18 +7,6 @@ Podczas powtórek użytkownik odpowiada czy potrafi przetłumaczyć dane słowo 
 Słowa zapomniane są powtarzane w trakcie jednej sesji aż do skutku.
 Interwał między wystąpieniami danego słowa rośnie lub maleje w zależności od udzielonej odpowiedzi.
 </p>
-<p>Aplikacja do działania wymaga instalacji modułu translate-api, czyli: </p>
-<input type="text" id="pip_command" value="pip install translate-api --user" readonly>
-<button class="btn btn-sm btn-raised btn-primary" onclick="copy_command()">Skopiuj</button>
-  <script>
-  function copy_command(){
-    var command = document.getElementById("pip_command");
-    command.select();
-    document.execCommand("copy");
-  }
-  </script>
-  
-
 <h2> Twoje statystyki </h2>
 Liczba sesji: {{ stats.srs_sessions }}<br>
 Wszystkich powtórek: {{ stats.total_reviews }}<br>
