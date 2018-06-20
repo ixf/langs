@@ -18,8 +18,8 @@ def index(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect('/login')
     template = loader.get_template('index.html')
-    own_articles = [ (a.id, a.title, a.contents[0:100]+"...") for a in Article.objects.filter(uploader=request.user)[::-1][0:3]]
-    latest_articles = [ (a.id, a.title, a.contents[0:100]+"...") for a in Article.objects.all()[::-1][0:3]]
+    own_articles = [ (a.id, a.language, a.title, a.contents[0:100]+"...") for a in Article.objects.filter(uploader=request.user)[::-1][0:3]]
+    latest_articles = [ (a.id, a.language, a.title, a.contents[0:100]+"...") for a in Article.objects.all()[::-1][0:3]]
 
     s = Statistics.objects.get(user=request.user)
 
@@ -238,9 +238,10 @@ def profile(request, user_id):
 def user_search(request):
     regex = request.GET['regex']
     template = loader.get_template('user_search.html')
+    results = User.objects.filter(username__regex=regex)
     context = {
         'title' : "Wyniki dla '" + regex + "'",
-        'users' : User.objects.filter(username__regex=regex),
+        'users' : results,
     }
     return HttpResponse(template.render(context, request))
 
