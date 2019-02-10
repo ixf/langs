@@ -1,0 +1,6 @@
+Wymagane do uruchomienia są moduły z pip:
+django requests PyExecJS translate_api
+i np. nodejs ( wymagane przez pyexecjs )
+
+Uruchamianie:
+python3 manage.py runserver

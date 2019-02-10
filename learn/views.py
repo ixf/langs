@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from .models import *
 
 import json
-from translate_api.translate_api import api as translate_api
+import translate as translate_api
 
 @login_required(redirect_field_name=None)
 def index(request):
@@ -213,7 +213,7 @@ def translate(request):
     print(request.GET)
     word = request.GET['w']
     lang = request.GET['lang']
-    translation = translate_api( word, lang, "pl" )
+    translation = translate_api.google( word, lang, "pl" )
 
     obj, created = Word.objects.get_or_create(literal=word, translated=translation, language=lang)
     if created:
